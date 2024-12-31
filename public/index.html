@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encrypted Chat</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+</head>
+<body>
+  <h1>Encrypted Chat</h1>
+  <div id="chat"></div>
+  <input id="messageInput" type="text" placeholder="Type a message" />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    const socket = io();
+    const secretKey = 'your-secret-key';
+
+    socket.on('message', (encryptedMessage) => {
+      const bytes = CryptoJS.AES.decrypt(encryptedMessage, secretKey);
+      const message = bytes.toString(CryptoJS.enc.Utf8);
+      displayMessage(message);
+    });
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value;
+      const encryptedMessage = CryptoJS.AES.encrypt(message, secretKey).toString();
+      socket.emit('message', encryptedMessage);
+      displayMessage(message);
+      messageInput.value = '';
+    }
+
+    function displayMessage(message) {
+      const chat = document.getElementById('chat');
+      const messageElement = document.createElement('div');
+      messageElement.textContent = message;
+      chat.appendChild(messageElement);
+    }
+  </script>
+</body>
+</html>
